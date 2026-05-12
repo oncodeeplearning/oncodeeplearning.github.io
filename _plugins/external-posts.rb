@@ -32,6 +32,8 @@ module ExternalPosts
         return
       end
       process_entries(site, src, feed.entries)
+    rescue StandardError => e
+      puts "Error fetching RSS feed from #{src['rss_url']} - #{e.message}"
     end
 
     def process_entries(site, src, entries)
@@ -84,6 +86,7 @@ module ExternalPosts
       src['posts'].each do |post|
         puts "...fetching #{post['url']}"
         content = fetch_content_from_url(post['url'])
+        next if content.nil?
         content[:published] = parse_published_date(post['published_date'])
         create_document(site, src['name'], post['url'], content, src)
       end
@@ -118,6 +121,9 @@ module ExternalPosts
         summary: description
         # Note: The published date is now added in the fetch_from_urls method.
       }
+    rescue StandardError => e
+      puts "Error fetching external post from #{url} - #{e.message}"
+      nil
     end
 
   end
